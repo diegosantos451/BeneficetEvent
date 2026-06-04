@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +9,60 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class VendaController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly VendaService _vendaService;
 
-        public VendaController(AppDbContext context)
+        public VendaController(VendaService vendaService)
         {
-            _context = context;
+            _vendaService = vendaService;
         }
 
         // GET: api/Venda
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Venda>>> GetVendas()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Vendas.ToListAsync();
+            var vendas = await _vendaService.ListarAsync();
+            return Ok(vendas);
         }
 
         // GET: api/Venda/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Venda>> GetVenda(Guid id)
+        public async Task<ActionResult> BuscarPorId(Guid id)
         {
-            var venda = await _context.Vendas.FindAsync(id);
+            var venda = await _vendaService.BuscarPorIdAsync(id);
 
             if (venda == null)
             {
                 return NotFound();
             }
 
-            return venda;
+            return Ok(venda);
         }
 
         // PUT: api/Venda/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutVenda(Guid id, Venda venda)
+        public async Task<IActionResult> Editar(Guid id,EditarVendaRequest request)
         {
-            if (id != venda.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(venda).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!VendaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            await _vendaService.EditarAsync(id,request);
+            return Ok(new {Mensagem="Venda alterada com sucesso."});
         }
 
         // POST: api/Venda
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Venda>> PostVenda(Venda venda)
+        public async Task<ActionResult<Venda>> Criar(CriarVendaRequest request)
         {
-            _context.Vendas.Add(venda);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetVenda", new { id = venda.Id }, venda);
+            var id = await _vendaService.CriarAsync(request);
+            return CreatedAtAction(nameof(BuscarPorId),new { id },new { Id = id, Mensagem ="Registro salvo com sucesso." }
+);
         }
 
         // DELETE: api/Venda/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteVenda(Guid id)
         {
-            var venda = await _context.Vendas.FindAsync(id);
-            if (venda == null)
-            {
-                return NotFound();
-            }
-
-            _context.Vendas.Remove(venda);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool VendaExists(Guid id)
-        {
-            return _context.Vendas.Any(e => e.Id == id);
+            await _vendaService.ExcluirAsync(id);
+            return Ok(new {Mensagem="Venda apagada com sucesso."});
         }
     }
 }

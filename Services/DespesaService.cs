@@ -21,7 +21,7 @@ public class DespesaService
         return await _context.Despesas.ToListAsync();
     }
 
-    public async Task<Despesa?> BuscarPorIdAsync(Guid id)
+    public async Task<Despesa?> ObterPorIdAsync(Guid id)
     {
         return await  _context.Despesas.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -65,14 +65,15 @@ public class DespesaService
         if(movimento is null)
             throw new RegraNegocioException("erro ao editar movimento financeiro.");
             
-        //editando movimento financeiro de acordo com o valor alterado na despesa 
-        movimento.Valor = despesa.Valor;
-
+        
         despesa.Categoria = request.Categoria;
         despesa.Data = request.Data;
         despesa.Descricao = request.Descricao;
         despesa.Fornecedor = request.Fornecedor;
         despesa.Valor = request.Valor;
+        
+        //editando movimento financeiro de acordo com o valor alterado na despesa 
+        movimento.Valor = despesa.Valor;
 
         await _context.SaveChangesAsync();
     }

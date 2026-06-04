@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +12,59 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class BingoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly BingoService _bingoService;
 
-        public BingoController(AppDbContext context)
+        public BingoController(BingoService bingoService)
         {
-            _context = context;
+            _bingoService = bingoService;
         }
 
         // GET: api/Bingo
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Bingo>>> GetBingos()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Bingos.ToListAsync();
+            var bingos = await _bingoService.ListarAsync();
+            return Ok(bingos);
         }
 
         // GET: api/Bingo/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Bingo>> GetBingo(Guid id)
+        public async Task<ActionResult> BuscarPorId(Guid id)
         {
-            var bingo = await _context.Bingos.FindAsync(id);
+            var bingo = await _bingoService.BuscarPorIdAsync(id);
 
             if (bingo == null)
             {
                 return NotFound();
             }
 
-            return bingo;
+            return Ok(bingo);
         }
 
         // PUT: api/Bingo/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBingo(Guid id, Bingo bingo)
+        public async Task<IActionResult> Editar(Guid id, EditarBingoRequest request)
         {
-            if (id != bingo.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(bingo).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BingoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _bingoService.EditarAsync(id, request);
             return NoContent();
         }
 
         // POST: api/Bingo
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Bingo>> PostBingo(Bingo bingo)
+        public async Task<ActionResult<Bingo>> Criar(CriarBingoRequest request)
         {
-            _context.Bingos.Add(bingo);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetBingo", new { id = bingo.Id }, bingo);
+            var id = await _bingoService.CriarAsync(request);
+            return CreatedAtAction(nameof(BuscarPorId), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Bingo/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBingo(Guid id)
+        public async Task<IActionResult> Excluir(Guid id)
         {
-            var bingo = await _context.Bingos.FindAsync(id);
-            if (bingo == null)
-            {
-                return NotFound();
-            }
-
-            _context.Bingos.Remove(bingo);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool BingoExists(Guid id)
-        {
-            return _context.Bingos.Any(e => e.Id == id);
+            await _bingoService.ExcluirAsync(id);
+            return Ok(new { Id = id, Mensagem = "Registro apagado com sucesso." });
         }
     }
 }

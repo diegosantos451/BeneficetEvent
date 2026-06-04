@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BeneficentEvent.Data;
-using BeneficentEvent.Models;
+
 using BeneficentEvent.Services;
 using BeneficentEvent.DTOs.Request;
-using Microsoft.OpenApi;
+
 
 namespace BeneficentEvent.Controllers
 {

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BeneficentEvent.Models;
 public class ItemVenda
 {
@@ -5,6 +7,7 @@ public class ItemVenda
 
     public Guid VendaId { get; set; }
 
+    [JsonIgnore]
     public Venda Venda { get; set; } = null!;
 
     public Guid ProdutoId { get; set; }

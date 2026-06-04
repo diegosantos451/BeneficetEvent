@@ -1,12 +1,14 @@
 using BeneficentEvent.Data;
 using BeneficentEvent.Exceptions;
 using BeneficentEvent.Models;
+using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.Services;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
-namespace BeneficentEvent.DTOs.Request;
+namespace BeneficentEvent.Services;
 
 public class BenfeitorService
 {
@@ -22,7 +24,7 @@ public class BenfeitorService
         return await _context.Benfeitores.Include(x => x.Doacoes).Include(x =>x.Eventos).Include(x => x.Lances).ToListAsync();
     }
 
-    public async Task<Benfeitor?> BuscarPorId(Guid id)
+    public async Task<Benfeitor?> BuscarPorIdAsync(Guid id)
     {
         return await _context.Benfeitores.Include(x => x.Doacoes).Include(x =>x.Eventos).Include(x => x.Lances).FirstOrDefaultAsync(x => x.Id == id);
         
@@ -34,11 +36,12 @@ public class BenfeitorService
 
         if(benfeitor is null)
             throw new RegraNegocioException("Benfeitor não cadastrado.");
-        if(benfeitor.CPF.Length<=0 || benfeitor.CPF.Length > 11)
+        if(request.Cpf.Length<=0 || request.Cpf.Length > 11)
             throw new RegraNegocioException("CPF inválido.");
-        if(benfeitor.Nome.Length < 3)
+        if(request.Nome.Length < 3)
             throw new RegraNegocioException("Nome inválido");
         
+        benfeitor.Nome = request.Nome;
         benfeitor.CPF = request.Cpf;
         benfeitor.Email = request.Email;
         benfeitor.Endereco = request.Endereco;
@@ -61,7 +64,7 @@ public class BenfeitorService
         {
           Id = Guid.NewGuid(),
           Nome = request.Nome,
-          CPF = request.Nome,
+          CPF = request.Cpf,
           Telefone = request.Telefone,
           Email = request.Email,
           Endereco = request.Endereco  

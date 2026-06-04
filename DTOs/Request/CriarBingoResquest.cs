@@ -4,6 +4,12 @@ public record CriarBingoRequest(
     Guid EventoId,
     string Nome,
     decimal ValorCartela,
-    DateTime DataSorteio
+    DateTime DataSorteio,
+    List<ItensBingoRequest> premiosBingo
 
+);
+
+public record ItensBingoRequest(
+    string Descricao,
+    decimal ValorEstimado
 );

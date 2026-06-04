@@ -6,10 +6,11 @@ public record EditarDoacaoRequest(
     TipoDoacao Tipo,
     decimal ValorMonetario,
     string? Observacao,
-    List<ItemDoacaoRequest> Itens
+    List<EditarItemDoacaoRequest> Itens
 );
 
 public record EditarItemDoacaoRequest(
+    Guid Id,
     string Nome,
     decimal Quantidade,
     string Unidade,

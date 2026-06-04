@@ -31,18 +31,15 @@ public class DoacaoService
     //editar uma doação
     public async Task EditarAsync(Guid id, EditarDoacaoRequest request)
     {   
-        var doacao = await _context.Doacoes.Include(x => x.Evento).FirstOrDefaultAsync(x => x.Id == id);
+        var doacao = await _context.Doacoes.Include(x => x.Evento).Include(x => x.Itens).FirstOrDefaultAsync(x => x.Id == id);
 
         if (doacao is null)
-        {
             throw new RegraNegocioException("Doação não encontrada!");
 
-        }
 
         if (doacao.Evento.Status != StatusEvento.EmAndamento)
-        {
             throw new RegraNegocioException("Não é possível editar uma Doação de um Evento encerrado!");
-        }
+
 
         if (request.Tipo == TipoDoacao.Dinheiro)
         {
@@ -52,6 +49,8 @@ public class DoacaoService
             }
         }
 
+        var idsRecebidos = request.Itens.Select(x => x.Id).ToList();
+        var idsRemover = doacao.Itens.Where(x => !idsRecebidos.Contains(x.Id)).ToList();
         doacao.Tipo = request.Tipo;
         doacao.Observacao = request.Observacao;
         doacao.ValorMonetario = request.ValorMonetario;
@@ -64,25 +63,32 @@ public class DoacaoService
             movimento.Valor = doacao.ValorMonetario;
         }
 
-        doacao = await _context.Doacoes.Include(x => x.Itens).FirstOrDefaultAsync(x => x.Id == id);
-        if (!(doacao is null))
+        foreach (var item in request.Itens)
         {
-            _context.ItensDoacao.RemoveRange(doacao.Itens);
-            doacao.Itens.Clear();
-            foreach (var item in request.Itens)
+            var itemExistente = doacao.Itens.FirstOrDefault(x => x.Id == item.Id);
+            if(itemExistente is null)
             {
                 doacao.Itens.Add(new ItemDoacao
-                {
-                    Id = Guid.NewGuid(),
-                    Nome = item.Nome,
-                    Quantidade = item.Quantidade,
-                    Unidade = item.Unidade,
-                    ValorEstimado = item.ValorEstimado
-                });
+            {
+                Id = Guid.NewGuid(),
+                Nome = item.Nome,
+                Quantidade = item.Quantidade,
+                Unidade = item.Unidade,
+                ValorEstimado = item.ValorEstimado
+            });
             }
-            await _context.SaveChangesAsync();
+            else
+            {
+                itemExistente.Nome = item.Nome;
+                itemExistente.Quantidade = item.Quantidade;
+                itemExistente.Unidade = item.Unidade;
+                itemExistente.ValorEstimado = item.ValorEstimado;
+            }   
         }
+        _context.RemoveRange(idsRemover);
+        await _context.SaveChangesAsync();
     }
+
     public async Task<Guid> CriarAsync(CriarDoacaoRequest request)
     {
         //1ª regra de negócio: se a doação conter dinheiro, observar se este é maior que zero ou nulo

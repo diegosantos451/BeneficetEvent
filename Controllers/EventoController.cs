@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +12,58 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class EventoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly EventoService _eventoService;
 
-        public EventoController(AppDbContext context)
+        public EventoController(EventoService eventoService)
         {
-            _context = context;
+            _eventoService = eventoService;
         }
 
         // GET: api/Evento
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Evento>>> GetEventos()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Eventos.ToListAsync();
+            var eventos = await _eventoService.ListarAsync();
+            return Ok(eventos);
         }
 
         // GET: api/Evento/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Evento>> GetEvento(Guid id)
+        public async Task<ActionResult> ObterPorId(Guid id)
         {
-            var evento = await _context.Eventos.FindAsync(id);
+            var evento = await _eventoService.ObterPorIdAsync(id);
 
             if (evento == null)
             {
                 return NotFound();
             }
-
-            return evento;
+            return Ok(evento);
         }
 
         // PUT: api/Evento/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvento(Guid id, Evento evento)
+        public async Task<IActionResult> Editar(Guid id, CriarEventoRequest request)
         {
-            if (id != evento.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(evento).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EventoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _eventoService.EditarAsync(id, request);
             return NoContent();
         }
 
         // POST: api/Evento
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Evento>> PostEvento(Evento evento)
+        public async Task<ActionResult<Evento>> Criar(CriarEventoRequest request)
         {
-            _context.Eventos.Add(evento);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetEvento", new { id = evento.Id }, evento);
+            var id = await _eventoService.CriarAsync(request);
+            return CreatedAtAction(nameof(ObterPorId), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Evento/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteEvento(Guid id)
+        public async Task<IActionResult> Excluir(Guid id)
         {
-            var evento = await _context.Eventos.FindAsync(id);
-            if (evento == null)
-            {
-                return NotFound();
-            }
-
-            _context.Eventos.Remove(evento);
-            await _context.SaveChangesAsync();
-
+            await _eventoService.ExcluirAsync(id);
             return NoContent();
-        }
-
-        private bool EventoExists(Guid id)
-        {
-            return _context.Eventos.Any(e => e.Id == id);
         }
     }
 }

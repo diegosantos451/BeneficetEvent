@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +12,59 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class DespesaController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly DespesaService _despesaService;
 
-        public DespesaController(AppDbContext context)
+        public DespesaController(DespesaService despesaService)
         {
-            _context = context;
+            _despesaService = despesaService;
         }
 
         // GET: api/Despesa
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Despesa>>> GetDespesas()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Despesas.ToListAsync();
+            var despesas = await _despesaService.ListarAsync();
+            return Ok(despesas);
         }
 
         // GET: api/Despesa/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Despesa>> GetDespesa(Guid id)
+        public async Task<ActionResult> ObterPorId(Guid id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
+            var despesa = await _despesaService.ObterPorIdAsync(id);
 
             if (despesa == null)
             {
                 return NotFound();
             }
 
-            return despesa;
+            return Ok(despesa);
         }
 
         // PUT: api/Despesa/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDespesa(Guid id, Despesa despesa)
+        public async Task<IActionResult> Editar(Guid id, CriarDespesaRequest request)
         {
-            if (id != despesa.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(despesa).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DespesaExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _despesaService.EditarAsync(id, request);
             return NoContent();
         }
 
         // POST: api/Despesa
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Despesa>> PostDespesa(Despesa despesa)
+        public async Task<ActionResult<Despesa>> Criar(CriarDespesaRequest request)
         {
-            _context.Despesas.Add(despesa);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetDespesa", new { id = despesa.Id }, despesa);
+            var id = await _despesaService.CriarAsync(request);
+            return CreatedAtAction(nameof(ObterPorId), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Despesa/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDespesa(Guid id)
+        public async Task<IActionResult> Excluir(Guid id)
         {
-            var despesa = await _context.Despesas.FindAsync(id);
-            if (despesa == null)
-            {
-                return NotFound();
-            }
-
-            _context.Despesas.Remove(despesa);
-            await _context.SaveChangesAsync();
-
+            await _despesaService.ExcluirAsync(id);
             return NoContent();
-        }
-
-        private bool DespesaExists(Guid id)
-        {
-            return _context.Despesas.Any(e => e.Id == id);
         }
     }
 }

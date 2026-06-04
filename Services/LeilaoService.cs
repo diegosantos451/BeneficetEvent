@@ -35,7 +35,7 @@ public class LeilaoService
     //editar um leilao e seus itens
     public async Task Editar(Guid id, EditarLeilaoRequest request)
     {
-        var leilao = await _context.Leiloes.Include(x => x.Itens).ThenInclude(x => x.Lances).FirstOrDefaultAsync(x => x.Id == id);
+        var leilao = await _context.Leiloes.Include(x=> x.Evento).Include(x => x.Itens).ThenInclude(x => x.Lances).FirstOrDefaultAsync(x => x.Id == id);
 
         if (leilao is null)
             throw new RegraNegocioException("Leião inexistente.");
@@ -51,37 +51,49 @@ public class LeilaoService
             var item = leilao.Itens.FirstOrDefault(x => x.Id == itemRequest.Id);
 
             if (item is null)
-                continue;
-
-            item.Nome = itemRequest.Nome;
-            item.Lote = itemRequest.Lote;
-            item.Descricao = itemRequest.Descricao;
-            item.LanceInicial = itemRequest.LanceInicial;
-
-            foreach (var lanceRequest in itemRequest.Lances)
             {
-                var lance = item.Lances.FirstOrDefault(x => x.Id == lanceRequest.Id);
-
-                if (lance is null)
+                leilao.Itens.Add(new ItemLeilao
                 {
-                    item.Lances.Add(new Lance
-                    {
-                        Id = Guid.NewGuid(),
-                        BenfeitorId = lanceRequest.BenfeitorID,
-                        Valor = lanceRequest.Valor,
-                        DataHora = DateTime.UtcNow
-                    });
-                    continue;
-                }
-                lance.BenfeitorId = lanceRequest.BenfeitorID;
-                lance.Valor = lanceRequest.Valor;
+                    Id = Guid.NewGuid(),
+                    LeilaoId = leilao.Id,
+                    Nome = itemRequest.Nome,
+                    Lote = itemRequest.Lote,
+                    Descricao = itemRequest.Descricao,
+                    LanceInicial = itemRequest.LanceInicial,
+                    LanceAtual = itemRequest.LanceAtual
+                });
             }
-            // Remove lances excluídos
-            var idsRecebidos = itemRequest.Lances.Select(x => x.Id).ToHashSet();
-            var lancesRemover = item.Lances.Where(x => !idsRecebidos.Contains(x.Id)).ToList();
-            _context.Lances.RemoveRange(lancesRemover);
-            // Recalcula LanceAtual
-            item.LanceAtual = item.Lances.Any() ? item.Lances.Max(x => x.Valor) : item.LanceInicial;
+            else
+            {
+                item.Nome = itemRequest.Nome;
+                item.Lote = itemRequest.Lote;
+                item.Descricao = itemRequest.Descricao;
+                item.LanceInicial = itemRequest.LanceInicial;
+
+                foreach (var lanceRequest in itemRequest.Lances)
+                {
+                    var lance = item.Lances.FirstOrDefault(x => x.Id == lanceRequest.Id);
+
+                    if (lance is null)
+                    {
+                        item.Lances.Add(new Lance
+                        {
+                            Id = Guid.NewGuid(),
+                            BenfeitorId = lanceRequest.BenfeitorID,
+                            Valor = lanceRequest.Valor,
+                            DataHora = lanceRequest.Data
+                        });
+                        continue;
+                    }
+                    lance.BenfeitorId = lanceRequest.BenfeitorID;
+                    lance.Valor = lanceRequest.Valor;
+                    lance.DataHora = lanceRequest.Data;
+                }
+                var idsRecebidos = itemRequest.Lances.Select(x => x.Id).ToHashSet();
+                var lancesRemover = item.Lances.Where(x => !idsRecebidos.Contains(x.Id)).ToList();
+                _context.Lances.RemoveRange(lancesRemover);
+                item.LanceAtual = item.Lances.Any() ? item.Lances.Max(x => x.Valor) : item.LanceInicial;
+            }
         }
         await _context.SaveChangesAsync();
     }

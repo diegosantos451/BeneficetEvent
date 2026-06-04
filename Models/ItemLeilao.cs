@@ -1,4 +1,7 @@
+using System.Text.Json.Serialization;
+
 namespace BeneficentEvent.Models;
+
 
 public class ItemLeilao
 {
@@ -6,6 +9,7 @@ public class ItemLeilao
 
     public Guid LeilaoId { get; set; }
 
+    [JsonIgnore]
     public Leilao Leilao { get; set; } = null!;
 
     public string Nome { get; set; } = string.Empty;

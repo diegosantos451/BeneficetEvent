@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BeneficentEvent.Models;
 
 public class Lance
@@ -6,6 +8,7 @@ public class Lance
 
     public Guid ItemLeilaoId { get; set; }
 
+    [JsonIgnore]
     public ItemLeilao ItemLeilao { get; set; } = null!;
 
     public Guid BenfeitorId { get; set; }

@@ -1,12 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +11,61 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class BenfeitorController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly BenfeitorService _benfeitorService;
 
-        public BenfeitorController(AppDbContext context)
+        public BenfeitorController(BenfeitorService benfeitorService)
         {
-            _context = context;
+            _benfeitorService = benfeitorService;
         }
 
         // GET: api/Benfeitor
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Benfeitor>>> GetBenfeitores()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Benfeitores.ToListAsync();
+            var benfeitores = await _benfeitorService.ListarAsync();
+            return Ok(benfeitores);
         }
 
         // GET: api/Benfeitor/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Benfeitor>> GetBenfeitor(Guid id)
+        public async Task<ActionResult> ObterPorId(Guid id)
         {
-            var benfeitor = await _context.Benfeitores.FindAsync(id);
+            var benfeitor = await _benfeitorService.BuscarPorIdAsync(id);
 
             if (benfeitor == null)
             {
                 return NotFound();
             }
 
-            return benfeitor;
+            return Ok(benfeitor);
         }
 
         // PUT: api/Benfeitor/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBenfeitor(Guid id, Benfeitor benfeitor)
+        public async Task<IActionResult> Editar(Guid id, CriarBenfeitorRequest request)
         {
-            if (id != benfeitor.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(benfeitor).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!BenfeitorExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            await _benfeitorService.EditarAsync(id, request);
+            return Ok(new { Id = id, Mensagem = "Alterações feitas com sucesso." });
         }
 
         // POST: api/Benfeitor
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Benfeitor>> PostBenfeitor(Benfeitor benfeitor)
+        public async Task<ActionResult<Benfeitor>> Criar(CriarBenfeitorRequest request)
         {
-            _context.Benfeitores.Add(benfeitor);
-            await _context.SaveChangesAsync();
+            var id = await _benfeitorService.CriarAsync(request);
 
-            return CreatedAtAction("GetBenfeitor", new { id = benfeitor.Id }, benfeitor);
+            return CreatedAtAction(nameof(ObterPorId), new { id }, new { id = id, Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Benfeitor/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteBenfeitor(Guid id)
+        public async Task<IActionResult> Excluir(Guid id)
         {
-            var benfeitor = await _context.Benfeitores.FindAsync(id);
-            if (benfeitor == null)
-            {
-                return NotFound();
-            }
+            await _benfeitorService.ExcluirAsync(id);
 
-            _context.Benfeitores.Remove(benfeitor);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool BenfeitorExists(Guid id)
-        {
-            return _context.Benfeitores.Any(e => e.Id == id);
+            return Ok(new {id = id, Mensagem="Registro apagado com sucesso."});
         }
     }
 }

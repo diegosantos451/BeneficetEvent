@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace BeneficentEvent.Models;
 
 public class PremioBingo
@@ -6,9 +8,10 @@ public class PremioBingo
 
     public Guid BingoId { get; set; }
 
+    [JsonIgnore]
     public Bingo Bingo { get; set; } = null!;
 
     public string Descricao { get; set; } = string.Empty;
 
     public decimal ValorEstimado { get; set; }
-}
+}   

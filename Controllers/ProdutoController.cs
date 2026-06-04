@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BeneficentEvent.Data;
 using BeneficentEvent.Models;
+using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Request;
 
 namespace BeneficentEvent.Controllers
 {
@@ -14,95 +12,59 @@ namespace BeneficentEvent.Controllers
     [ApiController]
     public class ProdutoController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly ProdutoService _produtoService;
 
-        public ProdutoController(AppDbContext context)
+        public ProdutoController(ProdutoService produtoService)
         {
-            _context = context;
+            _produtoService = produtoService;
         }
 
         // GET: api/Produto
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Produto>>> GetProdutos()
+        public async Task<ActionResult> Listar()
         {
-            return await _context.Produtos.ToListAsync();
+            var produtos =  await _produtoService.ListarAsync();
+            return Ok(produtos);
         }
 
         // GET: api/Produto/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Produto>> GetProduto(Guid id)
+        public async Task<ActionResult> ObterPorId(Guid id)
         {
-            var produto = await _context.Produtos.FindAsync(id);
+            var produto = await _produtoService.ObterPorIdAsync(id);
 
             if (produto == null)
             {
                 return NotFound();
             }
 
-            return produto;
+            return Ok(produto);
         }
 
         // PUT: api/Produto/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProduto(Guid id, Produto produto)
+        public async Task<IActionResult> Editar(Guid id, CriarProdutoRequest request)
         {
-            if (id != produto.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(produto).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ProdutoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _produtoService.EditarAsync(id, request);
             return NoContent();
         }
 
         // POST: api/Produto
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Produto>> PostProduto(Produto produto)
+        public async Task<ActionResult<Produto>> Criar(CriarProdutoRequest request)
         {
-            _context.Produtos.Add(produto);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetProduto", new { id = produto.Id }, produto);
+            var id = await _produtoService.CriarAsync(request);
+            return CreatedAtAction(nameof(ObterPorId), new { id = id }, new {Mensagem="Registro salvo com sucesso."});
         }
 
         // DELETE: api/Produto/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteProduto(Guid id)
+        public async Task<IActionResult> Excluir(Guid id)
         {
-            var produto = await _context.Produtos.FindAsync(id);
-            if (produto == null)
-            {
-                return NotFound();
-            }
-
-            _context.Produtos.Remove(produto);
-            await _context.SaveChangesAsync();
-
+           await _produtoService.ExcluirAsync(id);
             return NoContent();
-        }
-
-        private bool ProdutoExists(Guid id)
-        {
-            return _context.Produtos.Any(e => e.Id == id);
         }
     }
 }

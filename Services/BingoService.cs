@@ -36,6 +36,17 @@ public class BingoService
           ValorCartela = request.ValorCartela,
           DataSorteio = request.DataSorteio  
         };
+        
+        foreach(var premioRequest in request.premiosBingo)
+        {
+            bingo.Premios.Add(new PremioBingo
+            {
+               Id = Guid.NewGuid(),
+               BingoId = bingo.Id,
+               Descricao = premioRequest.Descricao,
+               ValorEstimado = premioRequest.ValorEstimado 
+            });
+        }
 
         _context.Bingos.Add(bingo);
         await _context.SaveChangesAsync();

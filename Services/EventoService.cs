@@ -20,7 +20,7 @@ public class EventoService
         return await _context.Eventos.ToListAsync();
     }
 
-    public async Task<Evento?> BuscarPorIdAsync(Guid id)
+    public async Task<Evento?> ObterPorIdAsync(Guid id)
     {
         return await _context.Eventos.FirstOrDefaultAsync(x => x.Id == id);
 
@@ -32,7 +32,7 @@ public class EventoService
         {
             Id = Guid.NewGuid(),
             Nome = request.Nome,
-            Descricao = request.Nome,
+            Descricao = request.Descricao,
             DataInicio = request.DataInicio,
             DataFim = request.DataFim,
             Local = request.Local,
@@ -49,11 +49,11 @@ public class EventoService
         if (evento is null)
             throw new RegraNegocioException("Evento não cadastrado.");
         evento.Nome = request.Nome;
-        evento.Descricao = request.Nome;
+        evento.Descricao = request.Descricao;
         evento.DataInicio = request.DataInicio;
         evento.DataFim = request.DataFim;
         evento.Local = request.Local;
-        evento.Status = StatusEvento.Planejamento;
+        evento.Status = request.Status;
         await _context.SaveChangesAsync();
     }
 
