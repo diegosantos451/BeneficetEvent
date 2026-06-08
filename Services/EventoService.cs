@@ -60,54 +60,57 @@ public class EventoService
     public async Task ExcluirAsync(Guid id)
     {
         var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == id);
-        if(evento is null)
+        if (evento is null)
             throw new RegraNegocioException("Evento não cadastrado.");
         _context.Eventos.Remove(evento);
         await _context.SaveChangesAsync();
     }
 
-    public async Task AdicionarParticipante(Guid idEvento, CriarParticipanteEventoRequest request)
+    public async Task AddBenfeitorAsync(Guid eventoId, CriarParticipanteEventoRequest request)
     {
-        var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == idEvento);
+        var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == eventoId);
+        var benfeitor = await _context.Benfeitores.FirstOrDefaultAsync(x => x.Id == request.BenfeitorId);
 
-        if(evento is null)
-            throw new RegraNegocioException("Evento não cadastrado.");
+        if (await _context.ParticipacoesEvento.AnyAsync(x => x.BenfeitorId == request.BenfeitorId && x.EventoId == eventoId))
+            throw new RegraNegocioException("Participante já vinculado ao evento.");
 
-        var participante = await _context.Benfeitores.FirstOrDefaultAsync(x => x.Id == request.BenfeitorId);
-
-        if(participante is null)
-            throw new RegraNegocioException("Participante não cadastrado.");
-
-        var participanteEvento = new ParticipacaoEvento
+        if (!(evento is null) && !(benfeitor is null))
         {
-            EventoId = idEvento,
-            BenfeitorId = request.BenfeitorId,
-            Funcao = request.Funcao,
-            Observacao = request.Observacao
-        };      
+            var participanteEvento = new ParticipacaoEvento
+            {
+                Funcao = request.Funcao,
+                Observacao = request.Observacao,
+                BenfeitorId = request.BenfeitorId,
+                EventoId = eventoId
+            };
 
-        _context.ParticipacoesEvento.Add(participanteEvento);
-        await _context.SaveChangesAsync();
+            _context.ParticipacoesEvento.Add(participanteEvento);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new RegraNegocioException("Evento ou Benfeitor não cadastrado.");
+        }
     }
 
-    public async Task RemoverParticipante(Guid idEvento, Guid idBenfeitor)
+    public async Task RemoverBenfeitorAsync(Guid eventoId, Guid benfeitorId)
     {
-        var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == idEvento);
+        var participanteEvento = await _context.ParticipacoesEvento.FirstOrDefaultAsync(x => x.BenfeitorId == benfeitorId && x.EventoId == eventoId);
 
-        if(evento is null)
-            throw new RegraNegocioException("Evento não cadastrado.");
-
-        var participante = await _context.Benfeitores.FirstOrDefaultAsync(x => x.Id == idBenfeitor);
-
-        if(participante is null)
-            throw new RegraNegocioException("Participante não cadastrado.");
-
-        var participanteEvento = await _context.ParticipacoesEvento.FirstOrDefaultAsync(x => x.BenfeitorId == idBenfeitor && x.EventoId == idEvento);     
-        
-        if(participanteEvento is null)
-            throw new RegraNegocioException("Evento não cadastrado.");
-
-        _context.ParticipacoesEvento.Remove(participanteEvento);
-        await _context.SaveChangesAsync();
+        if (!(participanteEvento is null))
+        {
+            _context.ParticipacoesEvento.Remove(participanteEvento);
+            await _context.SaveChangesAsync();
+        }
+        else
+        {
+            throw new RegraNegocioException("Erro ao desvincular benfeitor.");
+        }
     }
+
+    public async Task<List<ParticipacaoEvento>> ListarParticipantesAsync(Guid eventoId)
+    {
+        return await _context.ParticipacoesEvento.Where(x => x.EventoId == eventoId).Include(x => x.Benfeitor).ToListAsync();
+    }
+
 }

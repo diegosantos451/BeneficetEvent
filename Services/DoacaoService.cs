@@ -19,7 +19,7 @@ public class DoacaoService
     //retorna todas as doações e seus respectivos itens
     public async Task<List<Doacao>> ListarAsync()
     {
-        return await _context.Doacoes.Include(x => x.Itens).ToListAsync();
+        return await _context.Doacoes.Include(x => x.Itens).Include(X => X.Evento).Include(X => X.Benfeitor).ToListAsync();
     }
 
     //retorna uma doacao e seus itens (se houver) por ID
@@ -30,7 +30,7 @@ public class DoacaoService
 
     //editar uma doação
     public async Task EditarAsync(Guid id, EditarDoacaoRequest request)
-    {   
+    {
         var doacao = await _context.Doacoes.Include(x => x.Evento).Include(x => x.Itens).FirstOrDefaultAsync(x => x.Id == id);
 
         if (doacao is null)
@@ -55,10 +55,10 @@ public class DoacaoService
         doacao.Observacao = request.Observacao;
         doacao.ValorMonetario = request.ValorMonetario;
 
-        if(doacao.Tipo == TipoDoacao.Dinheiro)
+        if (doacao.Tipo == TipoDoacao.Dinheiro)
         {
             var movimento = await _context.MovimentosFinanceiros.FirstOrDefaultAsync(x => x.Id == doacao.Id);
-            if(movimento is null)
+            if (movimento is null)
                 throw new RegraNegocioException("erro ao alterar movimento financeiro.");
             movimento.Valor = doacao.ValorMonetario;
         }
@@ -66,16 +66,16 @@ public class DoacaoService
         foreach (var item in request.Itens)
         {
             var itemExistente = doacao.Itens.FirstOrDefault(x => x.Id == item.Id);
-            if(itemExistente is null)
+            if (itemExistente is null)
             {
                 doacao.Itens.Add(new ItemDoacao
-            {
-                Id = Guid.NewGuid(),
-                Nome = item.Nome,
-                Quantidade = item.Quantidade,
-                Unidade = item.Unidade,
-                ValorEstimado = item.ValorEstimado
-            });
+                {
+                    Id = Guid.NewGuid(),
+                    Nome = item.Nome,
+                    Quantidade = item.Quantidade,
+                    Unidade = item.Unidade,
+                    ValorEstimado = item.ValorEstimado
+                });
             }
             else
             {
@@ -83,7 +83,7 @@ public class DoacaoService
                 itemExistente.Quantidade = item.Quantidade;
                 itemExistente.Unidade = item.Unidade;
                 itemExistente.ValorEstimado = item.ValorEstimado;
-            }   
+            }
         }
         _context.RemoveRange(idsRemover);
         await _context.SaveChangesAsync();

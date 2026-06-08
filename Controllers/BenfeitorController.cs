@@ -1,9 +1,8 @@
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using BeneficentEvent.Data;
 using BeneficentEvent.Models;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.Services;
 
 namespace BeneficentEvent.Controllers
 {

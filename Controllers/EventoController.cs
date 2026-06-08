@@ -58,12 +58,34 @@ namespace BeneficentEvent.Controllers
             return CreatedAtAction(nameof(ObterPorId), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
+        //POST: api/Evento/{idEvento}/Benfeitor/{id}
+        [HttpPost("{eventoId}/Benfeitor/")]
+        public async Task<IActionResult> AdicionarBenfeitor(Guid eventoId, CriarParticipanteEventoRequest request)
+        {
+            await _eventoService.AddBenfeitorAsync(eventoId, request);
+            return NoContent();
+        }
         // DELETE: api/Evento/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(Guid id)
         {
             await _eventoService.ExcluirAsync(id);
             return NoContent();
+        }
+
+        // DELETE: api/Evento/{eventoId}/Benfeitor/{benfeitorId}
+        [HttpDelete("{eventoId}/Benfeitor/{benfeitorId}")]
+        public async Task<IActionResult> RemoverBenfeitor(Guid eventoId, Guid benfeitorId)
+        {
+            await _eventoService.RemoverBenfeitorAsync(eventoId, benfeitorId);
+            return NoContent();
+        }
+
+        [HttpGet("{eventoId}/Benfeitor")]
+        public async Task<IActionResult> ListarParticipantesAsync(Guid eventoId)
+        {
+            var participantes = await _eventoService.ListarParticipantesAsync(eventoId);
+            return Ok(participantes);
         }
     }
 }

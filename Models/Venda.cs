@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using BeneficentEvent.Enums;
 namespace BeneficentEvent.Models;
 
@@ -7,6 +8,7 @@ public class Venda
 
     public Guid EventoId { get; set; }
 
+    [JsonIgnore]
     public Evento Evento { get; set; } = null!;
 
     public DateTime DataVenda { get; set; }
