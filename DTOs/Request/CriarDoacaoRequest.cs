@@ -9,6 +9,7 @@ public record CriarDoacaoRequest(
     Guid BenfeitorId,
     TipoDoacao Tipo,
     decimal ValorMonetario,
+    DateTime Data,
     string? Observacao,
     List<ItemDoacaoRequest> Itens
 );

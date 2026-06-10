@@ -3,9 +3,9 @@ namespace BeneficentEvent.DTOs.Request;
 
 public record CriarEventoRequest(
     string Nome,
-    string? Descricao,
+    string Descricao,
     DateTime DataInicio,
     DateTime DataFim,
-    string? Local,
+    string Local,
     StatusEvento Status
 );

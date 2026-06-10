@@ -5,6 +5,7 @@ using BeneficentEvent.Data;
 using BeneficentEvent.Models;
 using BeneficentEvent.Services;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Controllers
 {
@@ -21,24 +22,16 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Despesa
         [HttpGet]
-        public async Task<ActionResult> Listar()
+        public async Task<ActionResult<List<DespesaResponse>>> Listar()
         {
-            var despesas = await _despesaService.ListarAsync();
-            return Ok(despesas);
+            return Ok(await _despesaService.ListarAsync());
         }
 
         // GET: api/Despesa/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> ObterPorId(Guid id)
+        public async Task<ActionResult<DespesaResponse>> ObterPorId(Guid id)
         {
-            var despesa = await _despesaService.ObterPorIdAsync(id);
-
-            if (despesa == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(despesa);
+           return Ok(await _despesaService.ObterPorIdAsync(id));
         }
 
         // PUT: api/Despesa/5

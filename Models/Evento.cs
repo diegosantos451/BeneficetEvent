@@ -6,10 +6,10 @@ public class Evento
 {
     public Guid Id  { get; set; }
     public string Nome { get; set; } = string.Empty;
-    public string? Descricao { get; set; }
+    public string Descricao { get; set; } = string.Empty;
     public DateTime DataInicio { get; set; } = DateTime.Now;
     public DateTime DataFim { get; set; }
-    public string? Local { get; set; }
+    public string Local { get; set; } = string.Empty;
     public StatusEvento Status { get; set; }
     public ICollection<ParticipacaoEvento> Participantes { get; set; } = new List<ParticipacaoEvento>();
     public ICollection<Doacao> Doacoes { get; set; } = new List<Doacao>();

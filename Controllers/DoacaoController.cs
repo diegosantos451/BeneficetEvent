@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using BeneficentEvent.DTOs.Request;
 using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Controllers
 {
@@ -18,24 +19,17 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Doacao
         [HttpGet]
-        public async Task<IActionResult> Listar()
+        public async Task<ActionResult<List<DoacaoResponse>>> Listar()
         {
-            var doacoes = await _doacaoService.ListarAsync();
-            return Ok(doacoes);
+            return Ok(await _doacaoService.ListarAsync());
         }
 
         // GET: api/Doacao/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> ObterPorId(Guid id)
+        public async Task<ActionResult<DoacaoDetalheResponse>> ObterPorIdDetalhe(Guid id)
         {
-            var doacao = await _doacaoService.ObterPorIdAsync(id);
+            return Ok(await _doacaoService.ObterPorIdDetalheAsync(id));
 
-            if (doacao == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(doacao);
         }
 
         // PUT: api/Doacao/5
@@ -44,24 +38,24 @@ namespace BeneficentEvent.Controllers
         public async Task<IActionResult> Editar(Guid id, EditarDoacaoRequest request)
         {
             await _doacaoService.EditarAsync(id, request);
-            return Ok(new{mensagem = "Alterações salvas!"});
+            return Ok(new { mensagem = "Alterações salvas!" });
         }
-        
+
         // POST: api/Doacao
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult> Criar(CriarDoacaoRequest request)
         {
             var id = await _doacaoService.CriarAsync(request);
-            return Ok(new {Id = id, Mensagem = "Doação cadastrada com sucesso!"});
+            return Ok(new { Id = id, Mensagem = "Doação cadastrada com sucesso!" });
         }
-        
+
         // DELETE: api/Doacao/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(Guid id)
         {
             await _doacaoService.ExcluirAsync(id);
-            return Ok(new{mensagem = "Doação apagada com sucesso!"});
+            return Ok(new { mensagem = "Doação apagada com sucesso!" });
         }
     }
 }

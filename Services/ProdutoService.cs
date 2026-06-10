@@ -3,7 +3,9 @@ using BeneficentEvent.DTOs.Request;
 using BeneficentEvent.Exceptions;
 using BeneficentEvent.Models;
 using Microsoft.EntityFrameworkCore;
+using BeneficentEvent.Enums;
 using SQLitePCL;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Services;
 
@@ -16,18 +18,55 @@ public class ProdutoService
         _context = context;
     }
 
-    public async Task<List<Produto>> ListarAsync()
+    public async Task<List<ProdutoResponse>> ListarAsync()
     {
-        return await _context.Produtos.ToListAsync();
+        return await _context.Produtos.Select(x => new ProdutoResponse(
+            x.Id,
+            x.Nome,
+            x.Categoria,
+            x.PrecoVenda
+        )).ToListAsync();
     }
 
-    public async Task<Produto?> ObterPorIdAsync(Guid id)
+    public async Task<ProdutoDetalheResponse> ObterPorIdDetalheAsync(Guid id)
     {
-        return await _context.Produtos.FirstOrDefaultAsync(x => x.Id == id);
+        var produto = await _context.Produtos.Include(x => x.Evento).FirstOrDefaultAsync(x => x.Id == id);
+
+        if(produto is null)
+            throw new RegraNegocioException("Produto não cadastrado.");
+
+        return new ProdutoDetalheResponse(
+            produto.Id,
+            produto.Nome,
+            produto.Evento.Nome,
+            produto.Categoria,
+            produto.PrecoVenda,
+            produto.QuantidadeEstoque
+        );
     }
 
     public async Task<Guid> CriarAsync(CriarProdutoRequest request)
     {
+        var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == request.EventoId);
+        
+        if(evento is null)
+            throw new RegraNegocioException("Evento não cadastrado.");
+        
+        if(evento.Status == StatusEvento.Encerrado)
+            throw new RegraNegocioException("Não é possível cadastrar um produto para um evento encerrado.");
+
+        if(request.Nome.Length < 3)
+            throw new RegraNegocioException("O campo nome deve conter ao menos 3 letras.");
+        
+        if(request.Categoria.Length < 3)
+            throw new RegraNegocioException("O campo categoria deve conter ao menos 3 letras.");
+
+        if(request.PrecoVenda <= 0)
+            throw new RegraNegocioException("O valor do produto deve ser maior que R$0,00.");
+
+        if(request.QuantidadeEstoque < 0)
+            throw new RegraNegocioException("O estoque não pode ser um valor negativo.");
+
         var produto = new Produto
         {
             Id = Guid.NewGuid(),
@@ -44,9 +83,29 @@ public class ProdutoService
 
     public async Task EditarAsync(Guid id, CriarProdutoRequest request)
     {
+        var evento = await _context.Eventos.FirstOrDefaultAsync(x => x.Id == request.EventoId);
         var produto = await _context.Produtos.FirstOrDefaultAsync(x => x.Id == id);
+
         if (produto is null)
             throw new RegraNegocioException("Produto não cadastrado.");
+
+        if(evento is null)
+            throw new RegraNegocioException("Evento não cadastrado.");
+        
+        if(evento.Status == StatusEvento.Encerrado)
+            throw new RegraNegocioException("Não é possível cadastrar um produto para um evento encerrado.");
+
+        if(request.Nome.Length < 3)
+            throw new RegraNegocioException("O campo nome deve conter ao menos 3 letras.");
+        
+        if(request.Categoria.Length < 3)
+            throw new RegraNegocioException("O campo categoria deve conter ao menos 3 letras.");
+
+        if(request.PrecoVenda <= 0)
+            throw new RegraNegocioException("O valor do produto deve ser maior que R$0,00.");
+
+        if(request.QuantidadeEstoque < 0)
+            throw new RegraNegocioException("O estoque não pode ser um valor negativo.");
 
         produto.Categoria = request.Categoria;
         produto.EventoId = request.EventoId;

@@ -3,9 +3,11 @@ using BeneficentEvent.Enums;
 
 
 public record EditarDoacaoRequest(
+    Guid BenfeitorId,
     TipoDoacao Tipo,
     decimal ValorMonetario,
     string? Observacao,
+    DateTime Data,
     List<EditarItemDoacaoRequest> Itens
 );
 

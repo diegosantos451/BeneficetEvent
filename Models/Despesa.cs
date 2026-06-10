@@ -8,14 +8,13 @@ public class Despesa
 
     public Guid EventoId { get; set; }
 
-    [JsonIgnore]
     public Evento Evento { get; set; } = null!;
 
     public string Descricao { get; set; } = string.Empty;
 
     public string Categoria { get; set; } = string.Empty;
 
-    public string? Fornecedor { get; set; }
+    public string? Fornecedor { get; set; } 
 
     public decimal Valor { get; set; }
 

@@ -5,6 +5,7 @@ using BeneficentEvent.Data;
 using BeneficentEvent.Models;
 using BeneficentEvent.Services;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Controllers
 {
@@ -21,24 +22,16 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Produto
         [HttpGet]
-        public async Task<ActionResult> Listar()
+        public async Task<ActionResult<List<ProdutoResponse>>> Listar()
         {
-            var produtos =  await _produtoService.ListarAsync();
-            return Ok(produtos);
+            return Ok(await _produtoService.ListarAsync());
         }
 
         // GET: api/Produto/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> ObterPorId(Guid id)
+        public async Task<ActionResult<ProdutoDetalheResponse>> ObterPorIdDetalhe(Guid id)
         {
-            var produto = await _produtoService.ObterPorIdAsync(id);
-
-            if (produto == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(produto);
+            return Ok(await _produtoService.ObterPorIdDetalheAsync(id));
         }
 
         // PUT: api/Produto/5
@@ -56,14 +49,14 @@ namespace BeneficentEvent.Controllers
         public async Task<ActionResult<Produto>> Criar(CriarProdutoRequest request)
         {
             var id = await _produtoService.CriarAsync(request);
-            return CreatedAtAction(nameof(ObterPorId), new { id = id }, new {Mensagem="Registro salvo com sucesso."});
+            return CreatedAtAction(nameof(ObterPorIdDetalhe), new { id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Produto/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Excluir(Guid id)
         {
-           await _produtoService.ExcluirAsync(id);
+            await _produtoService.ExcluirAsync(id);
             return NoContent();
         }
     }

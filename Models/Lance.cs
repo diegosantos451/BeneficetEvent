@@ -7,8 +7,7 @@ public class Lance
     public Guid Id { get; set; }
 
     public Guid ItemLeilaoId { get; set; }
-
-    [JsonIgnore]
+    
     public ItemLeilao ItemLeilao { get; set; } = null!;
 
     public Guid BenfeitorId { get; set; }

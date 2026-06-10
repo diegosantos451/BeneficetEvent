@@ -8,7 +8,6 @@ public class Produto
 
     public Guid EventoId { get; set; }
 
-    [JsonIgnore]
     public Evento Evento { get; set; } = null!;
 
     public string Nome { get; set; } = string.Empty;

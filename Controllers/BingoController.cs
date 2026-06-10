@@ -5,6 +5,7 @@ using BeneficentEvent.Data;
 using BeneficentEvent.Models;
 using BeneficentEvent.Services;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Controllers
 {
@@ -21,24 +22,16 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Bingo
         [HttpGet]
-        public async Task<ActionResult> Listar()
+        public async Task<ActionResult<List<BingoResponse>>> Listar()
         {
-            var bingos = await _bingoService.ListarAsync();
-            return Ok(bingos);
+           return Ok(await _bingoService.ListarAsync());
         }
 
         // GET: api/Bingo/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> BuscarPorId(Guid id)
+        public async Task<ActionResult<BingoDetalheResponse>> BuscarPorIdDetalhes(Guid id)
         {
-            var bingo = await _bingoService.BuscarPorIdAsync(id);
-
-            if (bingo == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(bingo);
+            return Ok(await _bingoService.BuscarPorIdDetalhesAsync(id));
         }
 
         // PUT: api/Bingo/5
@@ -56,7 +49,7 @@ namespace BeneficentEvent.Controllers
         public async Task<ActionResult<Bingo>> Criar(CriarBingoRequest request)
         {
             var id = await _bingoService.CriarAsync(request);
-            return CreatedAtAction(nameof(BuscarPorId), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
+            return CreatedAtAction(nameof(BuscarPorIdDetalhes), new { Id = id }, new { Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Bingo/5

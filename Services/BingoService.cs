@@ -1,5 +1,6 @@
 using BeneficentEvent.Data;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.DTOs.Response;
 using BeneficentEvent.Exceptions;
 using BeneficentEvent.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,18 +17,50 @@ public class BingoService
         _context = context;
     }
 
-    public async Task<List<Bingo>> ListarAsync()
+    public async Task<List<BingoResponse>> ListarAsync()
     {
-        return await _context.Bingos.Include(x => x.Premios).ToListAsync();
+        return await _context.Bingos.Select(x => new BingoResponse(
+            x.Id,
+            x.Nome,
+            x.ValorCartela,
+            x.DataSorteio
+        )).ToListAsync();
     }
 
-    public async Task<Bingo?> BuscarPorIdAsync(Guid id)
+    public async Task<BingoDetalheResponse> BuscarPorIdDetalhesAsync(Guid id)
     {
-        return await _context.Bingos.Include(x => x.Premios).FirstOrDefaultAsync(x => x.Id == id);
+        var bingo = await _context.Bingos.Include(x => x.Premios).FirstOrDefaultAsync(x => x.Id == id);
+
+        if(bingo is null)
+            throw new RegraNegocioException("Bingo não cadastrado.");
+
+        return new BingoDetalheResponse (
+            bingo.Id,
+            bingo.Nome,
+            bingo.ValorCartela,
+            bingo.DataSorteio,
+
+            bingo.Premios.Select(x => new ItensBingosResponse(
+                x.Id,
+                x.Descricao,
+                x.ValorEstimado
+            )).ToList()
+        );
     }
 
     public async Task<Guid> CriarAsync(CriarBingoRequest request)
     {
+        if(!await _context.Eventos.AnyAsync(x => x.Id == request.EventoId))
+            throw new RegraNegocioException("Evento não cadastrado.");
+        if(request.premiosBingo.Count == 0)
+            throw new RegraNegocioException("Ao menos um prêmio deve ser cadastrado.");
+        if(request.Nome.Length < 3)
+            throw new RegraNegocioException("Insira um nome válido.");
+        if(request.ValorCartela <= 0)
+            throw new RegraNegocioException("Digite um valor maior que R$0,00");
+        if(request.DataSorteio < DateTime.Today)
+            throw new RegraNegocioException("A data de sorteio não pode ser menor que a data de hoje.");
+        
         var bingo = new Bingo
         {
           Id = Guid.NewGuid(),
@@ -39,6 +72,11 @@ public class BingoService
         
         foreach(var premioRequest in request.premiosBingo)
         {
+            if(premioRequest.Descricao.Length < 3)
+                throw new RegraNegocioException("Insira um nome válido.");
+            if(premioRequest.ValorEstimado < 0)
+                throw new RegraNegocioException("Digite um valor maior ou igual que R$0,00");
+
             bingo.Premios.Add(new PremioBingo
             {
                Id = Guid.NewGuid(),
@@ -57,7 +95,16 @@ public class BingoService
     public async Task EditarAsync(Guid id, EditarBingoRequest request)
     {
         var bingo = await _context.Bingos.Include(x => x.Premios).FirstOrDefaultAsync(x => x.Id == id);
-        
+        if(await _context.Eventos.AnyAsync(x => x.Id == id))
+            throw new RegraNegocioException("Evento não cadastrado.");
+        if(request.PremiosBingo.Count == 0)
+            throw new RegraNegocioException("Ao menos um prêmio deve ser cadastrado.");
+        if(request.Nome.Length < 3)
+            throw new RegraNegocioException("Insira um nome válido.");
+        if(request.ValorCartela <= 0)
+            throw new RegraNegocioException("Digite um valor maior que R$0,00");
+        if(request.DataSorteio < DateTime.Now)
+            throw new RegraNegocioException("A data de sorteio não pode ser menor que a data de hoje.");
         if(bingo is null)
             throw new RegraNegocioException("Bingo não cadastrado.");
         
@@ -77,7 +124,6 @@ public class BingoService
                    Descricao = requestPremio.Descricao,
                    ValorEstimado = requestPremio.ValorEstimado 
                 });
-                continue;
             }
             else
             {

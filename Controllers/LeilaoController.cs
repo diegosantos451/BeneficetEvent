@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using BeneficentEvent.Services;
 using BeneficentEvent.DTOs.Request;
+using BeneficentEvent.DTOs.Response;
 
 
 namespace BeneficentEvent.Controllers
@@ -20,19 +21,16 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Leilao
         [HttpGet]
-        public async Task<IActionResult> Listar()
+        public async Task<ActionResult<List<LeilaoResponse>>> Listar()
         {
-            var leiloes = await _leilaoService.ListarAsync();
-            return Ok(leiloes);
-
+            return Ok(await _leilaoService.ListarAsync());
         }
 
         // GET: api/Leilao/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> ObterPorId(Guid id)
+        public async Task<ActionResult<LeilaoDetalheResponse>> ObterPorIdDetalhes(Guid id)
         {   
-            var leilao = await _leilaoService.ObterPorId(id);
-            return Ok(leilao);
+            return Ok(await _leilaoService.ObterPorIdDetalhesAsync(id));
         }
 
         // PUT: api/Leilao/5

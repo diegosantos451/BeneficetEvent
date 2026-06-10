@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using BeneficentEvent.Models;
 using BeneficentEvent.DTOs.Request;
 using BeneficentEvent.Services;
+using BeneficentEvent.DTOs.Response;
 
 namespace BeneficentEvent.Controllers
 {
@@ -19,24 +20,16 @@ namespace BeneficentEvent.Controllers
 
         // GET: api/Benfeitor
         [HttpGet]
-        public async Task<ActionResult> Listar()
+        public async Task<ActionResult<List<BenfeitorResponse>>> Listar()
         {
-            var benfeitores = await _benfeitorService.ListarAsync();
-            return Ok(benfeitores);
+            return Ok(await _benfeitorService.ListarAsync());
         }
 
         // GET: api/Benfeitor/5
         [HttpGet("{id}")]
-        public async Task<ActionResult> ObterPorId(Guid id)
+        public async Task<ActionResult<List<BenfeitorDetalheResponse>>> ObterPorIdDetalhes(Guid id)
         {
-            var benfeitor = await _benfeitorService.BuscarPorIdAsync(id);
-
-            if (benfeitor == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(benfeitor);
+            return Ok(await _benfeitorService.ObterPorIdDetalhesAsync(id));
         }
 
         // PUT: api/Benfeitor/5
@@ -55,7 +48,7 @@ namespace BeneficentEvent.Controllers
         {
             var id = await _benfeitorService.CriarAsync(request);
 
-            return CreatedAtAction(nameof(ObterPorId), new { id }, new { id = id, Mensagem = "Registro salvo com sucesso." });
+            return CreatedAtAction(nameof(ObterPorIdDetalhes), new { id }, new { id = id, Mensagem = "Registro salvo com sucesso." });
         }
 
         // DELETE: api/Benfeitor/5

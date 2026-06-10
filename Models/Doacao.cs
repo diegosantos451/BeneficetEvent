@@ -2,13 +2,13 @@ using System.Text.Json.Serialization;
 using BeneficentEvent.Enums;
 
 namespace BeneficentEvent.Models;
+
 public class Doacao
 {
     public Guid Id { get; set; }
 
     public Guid EventoId { get; set; }
 
-   
     public Evento Evento { get; set; } = null!;
 
     public Guid BenfeitorId { get; set; }

@@ -8,7 +8,6 @@ public class PremioBingo
 
     public Guid BingoId { get; set; }
 
-    [JsonIgnore]
     public Bingo Bingo { get; set; } = null!;
 
     public string Descricao { get; set; } = string.Empty;

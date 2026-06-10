@@ -23,21 +23,14 @@ namespace BeneficentEvent.Controllers
         [HttpGet]
         public async Task<ActionResult> Listar()
         {
-            var eventos = await _eventoService.ListarAsync();
-            return Ok(eventos);
+            return Ok(await _eventoService.ListarAsync());
         }
 
         // GET: api/Evento/5
         [HttpGet("{id}")]
         public async Task<ActionResult> ObterPorId(Guid id)
         {
-            var evento = await _eventoService.ObterPorIdAsync(id);
-
-            if (evento == null)
-            {
-                return NotFound();
-            }
-            return Ok(evento);
+            return Ok(await _eventoService.ObterPorIdDetalhesAsync(id));
         }
 
         // PUT: api/Evento/5
@@ -86,6 +79,21 @@ namespace BeneficentEvent.Controllers
         {
             var participantes = await _eventoService.ListarParticipantesAsync(eventoId);
             return Ok(participantes);
+        }
+
+        [HttpPost("{eventoId}/encerramento")]
+        public async Task<IActionResult> EncerrarEvento(Guid eventoId)
+        {
+            await _eventoService.EncerrarEventoAsync(eventoId);
+            return NoContent();
+        }
+
+        [HttpPost("{eventoId}/fechamentoBingo/{bingoId}/{quantidade}")]
+        public async Task<IActionResult> FechamentoDeBingo(Guid eventoId, Guid bingoId, int quantidade)
+        {
+            await _eventoService.FechamentoDeBingoAsync(eventoId, bingoId, quantidade);
+
+            return NoContent();
         }
     }
 }

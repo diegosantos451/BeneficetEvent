@@ -5,6 +5,7 @@ public record EditarLeilaoRequest
 (   
     string Nome,
     DateTime Data,
+    Guid EventoId,
     List<EditarItemLeilaoRequest> Itens
 );
 
