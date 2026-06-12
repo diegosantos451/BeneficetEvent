@@ -39,6 +39,12 @@ public class EventoService
 
         if (evento is null)
             throw new RegraNegocioException("Evento não cadastrado.");
+        
+        decimal TotalDespesas = evento.Despesas?.Sum(x => x.Valor) ?? 0m;
+        decimal TotalReceita = evento.MovimentosFinanceiros?.Where(x => x.Tipo == TipoMovimento.Receita).Sum(x => x.Valor) ?? 0m;
+        decimal LucroLivreAproximado = TotalReceita - TotalDespesas;
+        decimal TotalDoacaoDinheiro = evento.Doacoes?.Where(x => x.Tipo == TipoDoacao.Dinheiro).Sum(x => x.ValorMonetario) ?? 0m;
+        decimal TotalArremateLeilao = evento.Leiloes?.SelectMany(x => x.Itens).Sum(x => x.LanceAtual) ?? 0m;
 
         return new EventoDetalheResponse(
             evento.Id,
@@ -49,6 +55,20 @@ public class EventoService
             evento.Local,
             evento.Status,
 
+            //dados calculáveis
+            evento.Participantes.Count(),
+            evento.Doacoes?.Count(x => x.Tipo == TipoDoacao.Material) ?? 0,
+            evento.Doacoes?.Count() ?? 0,
+            evento.Produtos?.Count() ?? 0,
+            evento.Leiloes?.Count() ?? 0,
+            evento.Bingos?.Count() ?? 0,
+            evento.Bingos?.Select(x => x.Premios).Count() ?? 0,
+            TotalDespesas,
+            TotalReceita,
+            LucroLivreAproximado,
+            TotalDoacaoDinheiro,
+            TotalArremateLeilao,
+            
             evento.Participantes.Select(p => new BenfeitoresEventoResponse(
                 p.Benfeitor.Nome,
                 p.Funcao,
@@ -233,9 +253,14 @@ public class EventoService
         }
     }
 
-    public async Task<List<ParticipacaoEvento>> ListarParticipantesAsync(Guid eventoId)
+    public async Task<List<ListaParticipanteResponse>> ListarParticipantesAsync(Guid eventoId)
     {
-        return await _context.ParticipacoesEvento.Where(x => x.EventoId == eventoId).Include(x => x.Benfeitor).ToListAsync();
+        return await _context.ParticipacoesEvento.Select(x => new ListaParticipanteResponse(
+            x.BenfeitorId,
+            x.Benfeitor.Nome,
+            x.Funcao,
+            x.Observacao
+        )).ToListAsync();
     }
 
     public async Task EncerrarEventoAsync(Guid id)
@@ -303,7 +328,7 @@ public class EventoService
             EventoId = eventoId,
             Tipo = TipoMovimento.Receita,
             Valor = bingo.ValorCartela * quantidade,
-            Origem = $"Venda de cartelas de bingo: {bingo.Nome}",
+            Origem = "Venda de cartelas de bingo.",
             DataMovimento = DateTime.UtcNow
         };
 

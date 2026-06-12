@@ -10,6 +10,21 @@ public record EventoDetalheResponse(
     DateTime DataFim,
     string? Local,
     StatusEvento Status,
+
+    //dados calculáveis
+    int QuantidadeParticipante,
+    int QuantidadeDoacaoMaterial,
+    int TotalDoacoes,
+    int TotalProdutos,
+    int TotalLeiloes,
+    int TotalBingos,
+    int TotalPremiosBingos,
+    decimal TotalDespesas,
+    decimal TotalReceita,
+    decimal LucroLivreAproximado,
+    decimal TotalDoacaoDinheiro,
+    decimal TotalArremateLeilao,
+    
     List<BenfeitoresEventoResponse> Participantes,
     List<DoacoesEventoResponse> Doacoes,
     List<ProdutosEventoResponse> Produtos,
