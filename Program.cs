@@ -13,6 +13,7 @@ builder.Services.AddScoped<ProdutoService>();
 builder.Services.AddScoped<VendaService>();
 builder.Services.AddScoped<LeilaoService>();
 builder.Services.AddScoped<BingoService>();
+builder.Services.AddScoped<DashboardService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 

@@ -13,9 +13,9 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    /*[HttpGet]
+    [HttpGet]
     public async Task <ActionResult> ObterDashBoard()
     {
         return Ok(await _dashboardService.ObterDashboardAsync());
-    }*/ 
+    }
 }

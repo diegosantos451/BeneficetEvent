@@ -18,7 +18,7 @@ public class DashboardService
 
     public async Task<DashboardResponse> ObterDashboardAsync()
     {
-        var eventos = await _context.Eventos.ToListAsync();
+        var eventos = await _context.Eventos.Include(x => x.Participantes).ToListAsync();
 
         if (!eventos.Any())
             throw new RegraNegocioException("Nenhum evento cadastrado.");
@@ -28,7 +28,7 @@ public class DashboardService
         int EventosEncerrados = eventos?.Count(x => x.Status == StatusEvento.Encerrado) ?? 0;
         int ProximosEventos = eventos?.Count(x => x.Status == StatusEvento.Planejamento) ?? 0;
         decimal MediaArrecadacaoEvento = 0;
-        int TotalBenfeitores = eventos?.SelectMany(x => x.Participantes).Select(x => x.BenfeitorId).Distinct().Count() ?? 0;
+        int TotalBenfeitores = eventos.SelectMany(x => x.Participantes).Select(x => x.BenfeitorId).Distinct().Count();
         decimal TotalArrecadado = 0;
         decimal TotalDespesas = _context.MovimentosFinanceiros?.Where(x => x.Tipo == TipoMovimento.Despesa).Sum(x => x.Valor) ?? 0m; ;
         decimal LucroLiquido = 0;
@@ -43,20 +43,37 @@ public class DashboardService
         TotalArrecadado = _context.MovimentosFinanceiros?.Where(x => x.Tipo == TipoMovimento.Receita).Sum(x => x.Valor) ?? 0m;
 
         if (EventosAtivos + EventosEncerrados > 0)
-             MediaArrecadacaoEvento = TotalArrecadado / (EventosAtivos + EventosEncerrados);
+            MediaArrecadacaoEvento = TotalArrecadado / (EventosAtivos + EventosEncerrados);
         else
             MediaArrecadacaoEvento = 0;
 
         LucroLiquido = TotalArrecadado - TotalDespesas;
 
-        var TopEventos = await _context.Eventos.Select(e => new RankingEventoResponse(
-            e.Nome,
-            _context.MovimentosFinanceiros.Where(x => x.EventoId == e.Id && x.Tipo == TipoMovimento.Receita).Sum(x => (decimal?)x.Valor) ?? 0m
-        )).OrderByDescending(e => e.Arrecadado).Take(5).ToListAsync();
+        var TopEventos = await _context.Eventos.Select(e => new
+        {
+            Nome = e.Nome,
+            Arrecadado = _context.MovimentosFinanceiros.Where(x => x.EventoId == e.Id && x.Tipo == TipoMovimento.Receita).Sum(x => (decimal?)x.Valor) ?? 0m
+        }).
+        OrderByDescending(x => x.Arrecadado).
+        Take(5).
+        Select(x => new RankingEventoResponse(
+            x.Nome,
+            x.Arrecadado
+        )).ToListAsync();
 
-        var TopBenfeitores = await _context.Benfeitores.Select(b => new RankingBenfeitorResponse(
-            b.Nome,
-            b.Doacoes.Sum(d => (decimal?)d.ValorMonetario) ?? 0m)).OrderByDescending(b => b.TotalDoado).Take(5).ToListAsync();
+        var TopBenfeitores = await _context.Benfeitores.Select(b => new
+        {
+            Nome = b.Nome,
+            TotalDoado = _context.Doacoes.Where(x => x.BenfeitorId == b.Id).Sum(d => (decimal?)d.ValorMonetario) ?? 0m
+        }
+
+            ).
+            OrderByDescending(b => b.TotalDoado).
+            Take(5).
+            Select(x => new RankingBenfeitorResponse(
+                x.Nome,
+                x.TotalDoado
+            )).ToListAsync();
 
         var ReceitaMensal = await _context.MovimentosFinanceiros.Where(x => x.Tipo == TipoMovimento.Receita).GroupBy(x => new
         {
