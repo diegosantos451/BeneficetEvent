@@ -185,7 +185,7 @@ public class DoacaoService
                     EventoId = request.EventoId,
                     Tipo = TipoMovimento.Receita,
                     Valor = request.ValorMonetario,
-                    Origem = $"Doação de {benfeitor.Nome}",
+                    Origem = OrigemMovimento.Doacao,
                     DataMovimento = DateTime.UtcNow
                 };
                 _context.MovimentosFinanceiros.Add(movimento);

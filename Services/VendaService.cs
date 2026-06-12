@@ -101,7 +101,7 @@ public class VendaService
             EventoId = request.EventoId,
             Tipo = TipoMovimento.Receita,
             Valor = venda.ValorTotal,
-            Origem = "Venda de produtos",
+            Origem =  OrigemMovimento.Venda,
             DataMovimento = DateTime.UtcNow
         };
 

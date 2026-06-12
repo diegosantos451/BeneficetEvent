@@ -153,6 +153,9 @@ public class EventoService
 
         if (request.DataFim < DateTime.Today)
             throw new RegraNegocioException("A data de término do evento precisa ser maior que a data atual.");
+        
+        if (request.DataFim < request.DataInicio)
+            throw new RegraNegocioException("A data de término deve ser maior ou igual à data de início.");
 
         if (request.Local.Length < 3)
             throw new RegraNegocioException("O campo local do evento precisa conter ao menos 3 letras.");
@@ -290,7 +293,7 @@ public class EventoService
                     EventoId = evento.Id,
                     Tipo = TipoMovimento.Receita,
                     Valor = lanceVencedor.Valor,
-                    Origem = $"Lance de arremate do leilão: {leilao.Nome}, item: {item.Descricao}.",
+                    Origem = OrigemMovimento.Leilao,
                     DataMovimento = DateTime.UtcNow
                 };
                 _context.MovimentosFinanceiros.Add(movimento);
@@ -328,7 +331,7 @@ public class EventoService
             EventoId = eventoId,
             Tipo = TipoMovimento.Receita,
             Valor = bingo.ValorCartela * quantidade,
-            Origem = "Venda de cartelas de bingo.",
+            Origem = OrigemMovimento.Bingo,
             DataMovimento = DateTime.UtcNow
         };
 

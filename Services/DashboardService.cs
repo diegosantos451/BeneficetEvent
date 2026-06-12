@@ -18,58 +18,76 @@ public class DashboardService
 
     public async Task<DashboardResponse> ObterDashboardAsync()
     {
-        var eventos = await _context.Eventos.AsSplitQuery().Include(x => x.Participantes).ThenInclude(x => x.Benfeitor).Include(x => x.Doacoes).
-            ThenInclude(x => x.Benfeitor).Include(x => x.Doacoes).ThenInclude(x => x.Itens).Include(x => x.Produtos).Include(x => x.Despesas).Include(x => x.Bingos).
-                ThenInclude(x => x.Premios).Include(x => x.Leiloes).ThenInclude(x => x.Itens)
-                    .ThenInclude(x => x.Lances).ThenInclude(x => x.Benfeitor).Include(x => x.MovimentosFinanceiros).
-                        ToListAsync();
+        var eventos = await _context.Eventos.ToListAsync();
 
-
-        if (eventos is null)
+        if (!eventos.Any())
             throw new RegraNegocioException("Nenhum evento cadastrado.");
 
-        var VendasMensais = await _context.Vendas.GroupBy(x => new
-        {
-            x.DataVenda.Year,
-            x.DataVenda.Month
-        }).Select(x => ReceitaMensalResponse(
-            x.Key.Month.ToString(),
-            
-        ))  
-
-        int TotalEventos = eventos?.Count() ?? 0;
-        int EventosAtivos = eventos?.Select(x => x.Status == StatusEvento.Andamento).Count() ?? 0;
-        int EventosEncerrados = eventos?.Select(x => x.Status == StatusEvento.Encerrado).Count() ?? 0;
-        int ProximosEventos = eventos?.Select(x => x.Status == StatusEvento.Planejamento).Count() ?? 0;
+        int TotalEventos = eventos.Count();
+        int EventosAtivos = eventos?.Count(x => x.Status == StatusEvento.Andamento) ?? 0;
+        int EventosEncerrados = eventos?.Count(x => x.Status == StatusEvento.Encerrado) ?? 0;
+        int ProximosEventos = eventos?.Count(x => x.Status == StatusEvento.Planejamento) ?? 0;
         decimal MediaArrecadacaoEvento = 0;
-        int TotalBenfeitores = eventos?.Select(x => x.Participantes).Count() ?? 0;
+        int TotalBenfeitores = eventos?.SelectMany(x => x.Participantes).Select(x => x.BenfeitorId).Distinct().Count() ?? 0;
         decimal TotalArrecadado = 0;
-        decimal TotalDespesas = eventos?.SelectMany(x => x.Despesas).Sum(x => x.Valor) ?? 0m;
+        decimal TotalDespesas = _context.MovimentosFinanceiros?.Where(x => x.Tipo == TipoMovimento.Despesa).Sum(x => x.Valor) ?? 0m; ;
         decimal LucroLiquido = 0;
-        int TotalDoacao = eventos?.Select(x => x.Doacoes).Count() ?? 0;
+        int TotalDoacao = _context.Doacoes?.Count() ?? 0;
         int TotalVendas = _context.Vendas?.Count() ?? 0;
         int TotalBingo = _context.Bingos?.Count() ?? 0;
-        decimal ReceitaLeiloes = eventos?.Where(x => x.Status == StatusEvento.Encerrado).SelectMany(x => x.Leiloes).SelectMany(x => x.Itens).Sum(x => x.LanceAtual) ?? 0m;
-        decimal ReceitaDoacoes = eventos?.Where(x => x.Status == StatusEvento.Encerrado).SelectMany(x => x.Doacoes).Sum(x => x.ValorMonetario) ?? 0m;
-        decimal ReceitaBingos = _context.MovimentosFinanceiros?.Where(x => x.Origem == "Venda de cartelas de bingo.").Sum(x => x.Valor) ?? 0m;
-        decimal ReceitaVendas = _context.Vendas?.Sum(x => x.ValorTotal) ?? 0m;
+        decimal ReceitaLeiloes = _context.MovimentosFinanceiros?.Where(x => x.Origem == OrigemMovimento.Leilao).Sum(x => x.Valor) ?? 0m;
+        decimal ReceitaDoacoes = _context.MovimentosFinanceiros?.Where(x => x.Origem == OrigemMovimento.Doacao).Sum(x => x.Valor) ?? 0m;
+        decimal ReceitaBingos = _context.MovimentosFinanceiros?.Where(x => x.Origem == OrigemMovimento.Bingo).Sum(x => x.Valor) ?? 0m;
+        decimal ReceitaVendas = _context.MovimentosFinanceiros?.Where(x => x.Origem == OrigemMovimento.Venda).Sum(x => x.Valor) ?? 0m;
 
-        var TopEventos = await _context.Eventos.Select( e => new RankingEventoResponse(
+        TotalArrecadado = _context.MovimentosFinanceiros?.Where(x => x.Tipo == TipoMovimento.Receita).Sum(x => x.Valor) ?? 0m;
+
+        if (EventosAtivos + EventosEncerrados > 0)
+             MediaArrecadacaoEvento = TotalArrecadado / (EventosAtivos + EventosEncerrados);
+        else
+            MediaArrecadacaoEvento = 0;
+
+        LucroLiquido = TotalArrecadado - TotalDespesas;
+
+        var TopEventos = await _context.Eventos.Select(e => new RankingEventoResponse(
             e.Nome,
-            (e.Doacoes.Sum(d => (decimal?)d.ValorMonetario) ?? 0m) + (e.Leiloes.SelectMany(l => l.Itens).Sum(l => (decimal?)l.LanceAtual) ?? 0m) +
-                 (_context.Vendas.Where(v => v.EventoId == e.Id).Sum(vt => (decimal?)vt.ValorTotal) ?? 0m) + (_context.MovimentosFinanceiros.
-                    Where(m => m.EventoId == e.Id && m.Tipo == TipoMovimento.Receita).Sum(x =>(decimal?) x.Valor) ?? 0m)
-                        )).OrderByDescending(e => e.Arrecadado).Take(5).ToListAsync();
+            _context.MovimentosFinanceiros.Where(x => x.EventoId == e.Id && x.Tipo == TipoMovimento.Receita).Sum(x => (decimal?)x.Valor) ?? 0m
+        )).OrderByDescending(e => e.Arrecadado).Take(5).ToListAsync();
 
         var TopBenfeitores = await _context.Benfeitores.Select(b => new RankingBenfeitorResponse(
             b.Nome,
             b.Doacoes.Sum(d => (decimal?)d.ValorMonetario) ?? 0m)).OrderByDescending(b => b.TotalDoado).Take(5).ToListAsync();
 
-        var ReceitaMensal = await _context.Vendas.GroupBy()       
+        var ReceitaMensal = await _context.MovimentosFinanceiros.Where(x => x.Tipo == TipoMovimento.Receita).GroupBy(x => new
+        {
+            x.DataMovimento.Year,
+            x.DataMovimento.Month
+        })
+        .Select(x => new ReceitaMensalResponse(
+            x.Key.Month.ToString(),
+            x.Sum(x => x.Valor)
+        )).ToListAsync();
 
-        return Ok(new DashboardResponse(
-
-        ));
+        return new DashboardResponse(
+            TotalEventos,
+            EventosAtivos,
+            EventosEncerrados,
+            ProximosEventos,
+            MediaArrecadacaoEvento,
+            TotalBenfeitores,
+            TotalArrecadado,
+            TotalDespesas,
+            LucroLiquido,
+            TotalDoacao,
+            TotalVendas,
+            TotalBingo,
+            ReceitaLeiloes,
+            ReceitaDoacoes,
+            ReceitaBingos,
+            ReceitaVendas,
+            TopEventos,
+            TopBenfeitores,
+            ReceitaMensal
+        );
     }
-
 }
