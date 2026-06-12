@@ -101,7 +101,6 @@ BeneficentEvent
 │
 └── Migrations
 
-
 ---
 
 # Como executar
@@ -117,6 +116,7 @@ BeneficentEvent
 - Após iniciar: http://localhost:5187/swagger
 - Teste as funcionabilidades
 
+---
 
 # Próximas melhorias
 - Finalizar frontend em React
@@ -125,6 +125,7 @@ BeneficentEvent
 - Relatórios em PDF
 - Melhorias no dashboard
 
+---
 
 # Autor
 
@@ -134,4 +135,7 @@ Projeto desenvolvido para estudo e evolução em desenvolvimento Full Stack.
 
 <img width="1919" height="944" alt="image" src="https://github.com/user-attachments/assets/190cd488-6a98-4cb6-a84b-46b2f93fe88e" />
 
+---
+
+<img width="1919" height="936" alt="image" src="https://github.com/user-attachments/assets/39ace466-afc8-49de-8d87-e10ca3b1c73e" />
 
