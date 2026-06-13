@@ -109,9 +109,9 @@ BeneficentEvent
 
 - .NET 10 SDK instalado
 - Clone o projeto: git clone https://github.com/diegosantos451/BeneficetEvent.git
-- Vá para a pasta do projeot: cd BeneficetEvent
+- Vá para a pasta do projeto: cd BeneficetEvent
 - Restaure as dependências: dotnet restore
-- Crie o bando de dados: dotnet ef database update
+- Crie o banco de dados: dotnet ef database update
 - Execute a API: dotnet run
 - Após iniciar: http://localhost:5187/swagger
 - Teste as funcionabilidades
