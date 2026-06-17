@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using BeneficentEvent.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BeneficentEvent.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class DashboardController : ControllerBase

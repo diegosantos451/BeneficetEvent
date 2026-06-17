@@ -8,7 +8,7 @@ public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        
+
     }
 
     public DbSet<Evento> Eventos => Set<Evento>();
@@ -26,11 +26,13 @@ public class AppDbContext : DbContext
     public DbSet<ItemLeilao> ItensLeilao => Set<ItemLeilao>();
     public DbSet<Lance> Lances => Set<Lance>();
     public DbSet<MovimentoFinanceiro> MovimentosFinanceiros => Set<MovimentoFinanceiro>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ParticipacaoEvento>()
             .HasKey(x => new { x.EventoId, x.BenfeitorId });
+            
 
         base.OnModelCreating(modelBuilder);
     }
