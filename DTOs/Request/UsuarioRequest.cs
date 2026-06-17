@@ -8,4 +8,4 @@ public record UsuarioRequest(
     string Email,
     string SenhaHash,
     PerfilUsuario Perfil
-);
+);  

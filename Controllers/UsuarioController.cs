@@ -20,7 +20,7 @@ public class UsuarioController : ControllerBase
     public async Task<ActionResult<List<UsuarioResponse>>> Listar()
     {
         return Ok(await _usuarioService.Listar());
-    }
+    }  
 
     [HttpGet("{id}")]
     public async Task<ActionResult<UsuarioResponse>> ObterPorId(Guid id)

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BeneficentEvent.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/[controller]")]  
 [ApiController]
 public class AuthController : ControllerBase
 {

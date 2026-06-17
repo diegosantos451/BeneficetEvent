@@ -151,7 +151,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     );
 
-    options.AddSecurityRequirement(
+    /*options.AddSecurityRequirement(
         new OpenApiSecurityRequirement
         {
             {
@@ -168,7 +168,7 @@ builder.Services.AddSwaggerGen(options =>
                 Array.Empty<string>()
             }
         }
-    );
+    );*/
 
 });
 

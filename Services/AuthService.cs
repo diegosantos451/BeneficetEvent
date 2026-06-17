@@ -40,7 +40,7 @@ public class AuthService
             usuario.Nome,
             usuario.Email,
             usuario.Perfil
-        );
+        );  
     }
 
     private string GerarToken(Usuario usuario)

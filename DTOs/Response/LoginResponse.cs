@@ -7,4 +7,4 @@ public record LoginResponse(
     string Nome,
     string Email,
     PerfilUsuario Perfil
-);
+);  

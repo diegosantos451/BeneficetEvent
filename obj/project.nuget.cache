@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "OnDIUrvEZxs=",
+  "dgSpecHash": "2EX0hA5sFUY=",
   "success": true,
   "projectFilePath": "C:\\dev\\BeneficentEvent\\BeneficentEvent.csproj",
   "expectedPackageFiles": [
@@ -111,6 +111,7 @@
     "C:\\Users\\diego\\.nuget\\packages\\nuget.projectmodel\\6.12.1\\nuget.projectmodel.6.12.1.nupkg.sha512",
     "C:\\Users\\diego\\.nuget\\packages\\nuget.protocol\\6.12.1\\nuget.protocol.6.12.1.nupkg.sha512",
     "C:\\Users\\diego\\.nuget\\packages\\nuget.versioning\\7.6.0\\nuget.versioning.7.6.0.nupkg.sha512",
+    "C:\\Users\\diego\\.nuget\\packages\\scalar.aspnetcore\\2.16.4\\scalar.aspnetcore.2.16.4.nupkg.sha512",
     "C:\\Users\\diego\\.nuget\\packages\\sqlitepclraw.bundle_e_sqlite3\\2.1.11\\sqlitepclraw.bundle_e_sqlite3.2.1.11.nupkg.sha512",
     "C:\\Users\\diego\\.nuget\\packages\\sqlitepclraw.core\\2.1.11\\sqlitepclraw.core.2.1.11.nupkg.sha512",
     "C:\\Users\\diego\\.nuget\\packages\\sqlitepclraw.lib.e_sqlite3\\2.1.11\\sqlitepclraw.lib.e_sqlite3.2.1.11.nupkg.sha512",
@@ -137,7 +138,7 @@
     {
       "code": "NU1901",
       "level": "Warning",
-      "message": "Package 'NuGet.Protocol' 6.12.1 has a known low severity vulnerability, https://github.com/advisories/GHSA-g4vj-cjjj-v7hg",
+      "message": "O pacote 'NuGet.Protocol' 6.12.1 tem uma baixa vulnerabilidade de gravidade conhecida, https://github.com/advisories/GHSA-g4vj-cjjj-v7hg",
       "projectPath": "C:\\dev\\BeneficentEvent\\BeneficentEvent.csproj",
       "warningLevel": 1,
       "filePath": "C:\\dev\\BeneficentEvent\\BeneficentEvent.csproj",
