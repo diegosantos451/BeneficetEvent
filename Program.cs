@@ -3,7 +3,7 @@ using BeneficentEvent.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -52,51 +52,10 @@ builder.Services.AddAuthentication(options =>
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = "",
-            ValidAudience = "",
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave)),ClockSkew = TimeSpan.Zero
         };
-
-    options.Events = new JwtBearerEvents
-    {
-        OnAuthenticationFailed = context =>
-        {
-            Console.WriteLine(
-                $"[JWT] Falha: {context.Exception.Message}"
-            );
-
-            return Task.CompletedTask;
-        },
-
-        OnTokenValidated = context =>
-        {
-            Console.WriteLine(
-                $"[JWT] Token válido: {context.Principal?.Identity?.Name}"
-            );
-
-            return Task.CompletedTask;
-        },
-
-        OnChallenge = context =>
-        {
-            Console.WriteLine(
-                $"[JWT] Challenge: {context.Error}"
-            );
-
-            return Task.CompletedTask;
-        },
-
-        OnMessageReceived = context =>
-        {
-            Console.WriteLine(
-                "[JWT] Token recebido"
-            );
-
-            return Task.CompletedTask;
-        }
-
-    };
-
 });
 
 
@@ -115,85 +74,42 @@ builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<UsuarioService>();
 builder.Services.AddScoped<AuthService>();
 
-
-// ======================================================
-// SWAGGER + JWT
-// ======================================================
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc(
-        "v1",
-        new OpenApiInfo
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Informe o token JWT"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
         {
-            Title = "BeneficentEvent API",
-            Version = "v1",
-            Description =
-                "API com autenticação JWT"
-        }
-    );
-
-    options.AddSecurityDefinition(
-        "Bearer",
-        new OpenApiSecurityScheme
-        {
-            Name = "Authorization",
-
-            Type = SecuritySchemeType.Http,
-
-            Scheme = "Bearer",
-
-            BearerFormat = "JWT",
-
-            In = ParameterLocation.Header,
-
-            Description =
-            "Digite somente o token JWT."
-        }
-    );
-
-    /*options.AddSecurityRequirement(
-        new OpenApiSecurityRequirement
-        {
+            new OpenApiSecurityScheme
             {
-                new OpenApiSecurityScheme
+                Reference = new OpenApiReference
                 {
-                    Reference =
-                    new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-
-                Array.Empty<string>()
-            }
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            []
         }
-    );*/
-
+    });
 });
 
 
-// ======================================================
-// BUILD APP
-// ======================================================
 var app = builder.Build();
 
-
-// ======================================================
-// HTTP PIPELINE
-// ======================================================
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint(
-            "/swagger/v1/swagger.json",
-            "BeneficentEvent API v1"
-        );
-    });
-
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

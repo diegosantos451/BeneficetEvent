@@ -56,7 +56,13 @@ public class AuthService
 
         var credenciais = new SigningCredentials(chave, SecurityAlgorithms.HmacSha256);
 
-        var token = new JwtSecurityToken(claims: claims, expires: DateTime.UtcNow.AddHours(6), signingCredentials: credenciais);
+        var token = new JwtSecurityToken(
+            issuer: _configuration["Jwt:Issuer"],
+            audience: _configuration["Jwt:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(6),
+            signingCredentials: credenciais
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
